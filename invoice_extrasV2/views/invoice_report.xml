@@ -1,0 +1,28 @@
+<odoo>
+    <template id="report_invoice_document_inherit_extras" inherit_id="account.report_invoice_document">
+        
+        <xpath expr="//div[@name='address_not_same_as_shipping']" position="after">
+            <div class="row mt-2" id="invoice_extra_header_fields">
+                <div class="col-6" t-if="o.delivery_note_no">
+                    <strong>Delivery Note No:</strong>
+                    <span t-field="o.delivery_note_no"/>
+                </div>
+                <div class="col-6" t-if="o.lpo_number">
+                    <strong>L.P.O Number:</strong>
+                    <span t-field="o.lpo_number"/>
+                </div>
+            </div>
+        </xpath>
+
+        <xpath expr="//table[hasclass('o_main_table')]/thead/tr/th[1]" position="before">
+            <th>Packs</th>
+        </xpath>
+
+        <xpath expr="//table[hasclass('o_main_table')]/tbody//tr[1]//td[1]" position="before">
+            <td>
+                <span t-field="line.packs"/>
+            </td>
+        </xpath>
+
+    </template>
+</odoo>

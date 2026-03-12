@@ -3,22 +3,15 @@
     <template id="report_invoice_document_inherit_extras"
               inherit_id="account.report_invoice_document">
 
-        <xpath expr="//div[@class='row']" position="after">
-
-            <div class="row mt-2">
-
-                <div class="col-6">
-                    <strong>Delivery Note No:</strong>
-                    <span t-field="o.delivery_note_no"/>
-                </div>
-
-                <div class="col-6">
-                    <strong>L.P.O Number:</strong>
-                    <span t-field="o.lpo_number"/>
-                </div>
-
+        <xpath expr="//div[@id='informations']/div[@name='due_date']" position="after">
+            <div class="col-auto mw-100 mb-2" t-if="o.delivery_note_no" name="delivery_note">
+                <strong>Delivery Note No:</strong>
+                <p class="m-0" t-field="o.delivery_note_no"/>
             </div>
-
+            <div class="col-auto mw-100 mb-2" t-if="o.lpo_number" name="lpo_no">
+                <strong>L.P.O Number:</strong>
+                <p class="m-0" t-field="o.lpo_number"/>
+            </div>
         </xpath>
 
     </template>

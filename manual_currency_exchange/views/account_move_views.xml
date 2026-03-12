@@ -13,7 +13,7 @@
                 <field name="use_manual_currency_rate"/>
 
                 <field name="manual_currency_rate"
-                       attrs="{'invisible': [('use_manual_currency_rate','=',False)]}"/>
+                       invisible="not use_manual_currency_rate"/>
 
             </xpath>
 

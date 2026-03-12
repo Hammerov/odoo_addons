@@ -1,0 +1,1 @@
+This module creates a manual exchange rate per invoice/bill

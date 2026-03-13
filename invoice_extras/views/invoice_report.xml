@@ -4,14 +4,17 @@
               inherit_id="account.report_invoice_document">
 
         <xpath expr="//div[@id='informations']/div[@name='due_date']" position="after">
-            <div class="col-auto mw-100 mb-2" t-if="o.delivery_note_no" name="delivery_note">
-                <strong>D/Note </strong>
-                <p class="m-0" t-field="o.delivery_note_no"/>
+
+            <div class="col-3 mb-2" t-if="o.delivery_note_no" name="delivery_note">
+                <strong>D/Note</strong>
+                <div t-field="o.delivery_note_no"/>
             </div>
-            <div class="col-auto mw-100 mb-2" t-if="o.lpo_number" name="lpo_no">
-                <strong>L.P.O </strong>
-                <p class="m-0" t-field="o.lpo_number"/>
+
+            <div class="col-3 mb-2" t-if="o.lpo_number" name="lpo_no">
+                <strong>L.P.O</strong>
+                <div t-field="o.lpo_number"/>
             </div>
+
         </xpath>
 
     </template>

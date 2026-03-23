@@ -1,0 +1,31 @@
+<odoo>
+
+    <!-- Add to invoice line tree (generic) -->
+    <record id="view_move_line_tree_inherit_tax_incl" model="ir.ui.view">
+        <field name="name">account.move.line.tree.tax.incl</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_move_line_tree"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='price_subtotal']" position="after">
+                <field name="price_total" string="Incl. Tax" widget="monetary"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Add to invoice form lines (THIS is the important one) -->
+    <record id="view_move_form_inherit_tax_incl" model="ir.ui.view">
+        <field name="name">account.move.form.tax.incl</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='price_subtotal']" position="after">
+                <field name="price_total" string="Incl. Tax" widget="monetary"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

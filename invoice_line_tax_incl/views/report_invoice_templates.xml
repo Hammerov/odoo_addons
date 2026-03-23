@@ -1,0 +1,11 @@
+<odoo>
+    <template id="report_invoice_document_inherit_tax_incl" inherit_id="account.report_invoice_document">
+        <xpath expr="//th[@name='th_subtotal']" position="replace">
+            <th name="th_total_incl" class="text-end">Total (Incl. Tax)</th>
+        </xpath>
+
+        <xpath expr="//span[@t-field='line.price_subtotal']" position="replace">
+            <span t-field="line.price_total"/>
+        </xpath>
+    </template>
+</odoo>

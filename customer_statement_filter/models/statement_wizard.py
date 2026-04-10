@@ -15,15 +15,21 @@ class CustomerStatementWizard(models.TransientModel):
     def action_print_statements(self):
         self.ensure_one()
         
-        # Build the domain for partners
-        domain = [('id', 'in', self.partner_ids.ids)]
+        # 1. Start with the selected partners or all customers
+        if self.partner_ids:
+            partners = self.partner_ids
+        else:
+            # If no specific customers are picked, look for all customers
+            partners = self.env['res.partner'].search([])
+
+        # 2. Filter by balance using Python (since total_due is not stored in SQL)
         if self.exclude_zero_balance:
-            domain.append(('total_due', '>', 0))
+            # We use .filtered() because it can handle non-stored computed fields
+            partners = partners.filtered(lambda p: p.total_due > 0)
             
-        partners = self.env['res.partner'].search(domain)
-        
         if not partners:
             raise UserError(_("No customers found with the selected criteria."))
 
-        # Triggering the native Odoo Follow-up report engine
+        # 3. Trigger the report
         return self.env.ref('account_followup.action_report_followup').report_action(partners)
+    

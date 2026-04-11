@@ -13,6 +13,7 @@
                         <group string="Options">
                             <field name="account_id" options="{'no_create': True}"/>
                             <field name="exclude_zero_balance"/>
+                            <field name="statement_type" widget="radio" options="{'horizontal': true}"/>
                         </group>
                     </group>
                     <notebook>

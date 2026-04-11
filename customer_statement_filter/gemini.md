@@ -64,3 +64,68 @@ User selects Dates/Customers -> Input stored in Transient Model.
 User clicks "Print PDF" -> Server Action processes logic.
 
 Odoo generates Report -> PDF downloads automatically.
+Gemini Project Update: Customer Statement Filter
+1. Project Status
+Core Goal: Create a QuickBooks-style Customer Statement wizard with running balances.
+
+Working: Wizard UI, Menu item, Module installation, PDF Generation (Triggering).
+
+Broken: The PDF output is currently blank (White page/No data).
+
+2. Current Technical Blockers
+Data Linkage: The AbstractModel in reports/partner_statement_report.py does not seem to be injecting the docs list into the QWeb context.
+
+Naming Sync: We need to verify that report_name in XML matches _name in Python exactly.
+
+Variable Scope: The XML is using doc['lines'], which requires the Python _get_report_values to return a list of dictionaries.
+
+3. Files to Verify Next Time
+File: models/statement_wizard.py
+Ensure the print action passes the list of IDs explicitly:
+
+Python
+def action_print_statements(self):
+    self.ensure_one()
+    partners = self.partner_ids if self.partner_ids else self.env['res.partner'].search([])
+    # Use .ids to ensure we pass a list of integers to the report
+    return self.env.ref('customer_statement_filter.action_report_custom_statement').report_action(partners.ids, data={
+        'date_from': self.date_from,
+        'date_to': self.date_to,
+    })
+File: reports/partner_statement_report.py
+Verify the _name matches the report_name in the XML exactly:
+
+Python
+class PartnerStatementReport(models.AbstractModel):
+    _name = 'report.customer_statement_filter.report_details' # MUST MATCH XML
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        # We need to ensure docids contains the list from the wizard
+        partners = self.env['res.partner'].browse(docids)
+        # ... fetch lines logic ...
+        return {
+            'doc_ids': docids,
+            'doc_model': 'res.partner',
+            'docs': docs, # This is the list for the XML loop
+        }
+File: views/report_partner_statement.xml
+Verify the template ID and naming:
+
+XML
+<record id="action_report_custom_statement" model="ir.actions.report">
+    <field name="report_name">customer_statement_filter.report_details</field>
+    <field name="report_file">customer_statement_filter.report_details</field>
+</record>
+
+<template id="report_details"> <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="doc">
+            </t>
+    </t>
+</template>
+4. Troubleshooting Steps for Next Session
+Log Check: Check Odoo server logs for DEBUG: REPORT LOGIC TRIGGERED.
+
+Hardcode Test: Try returning a dummy string in the PDF to see if any text renders.
+
+Account Check: Confirm that the test customer has Posted journal items in an account of type Receivable.

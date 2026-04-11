@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_custom_statement" model="ir.actions.report">
+        <field name="name">Customer Statement</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">customer_statement_filter.report_details</field>
+        <field name="report_file">customer_statement_filter.report_details</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+    </record>
+
+    <template id="report_details">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row">
+                            <div class="col-6">
+                                <h3><strong>Statement</strong></h3>
+                                <p><span t-field="o.name"/><br/>
+                                <span t-field="o.street"/><br/>
+                                <span t-field="o.city"/></p>
+                            </div>
+                            <div class="col-6 text-end">
+                                <h4>Total Amount Due</h4>
+                                <h2 t-field="o.total_due" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm mt-4">
+                            <thead>
+                                <tr class="border-black">
+                                    <th>Date</th>
+                                    <th>Reference</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="lines" t-value="request.env['account.move.line'].search([
+                                    ('partner_id', '=', o.id),
+                                    ('account_id.account_type', '=', 'asset_receivable'),
+                                    ('parent_state', '=', 'posted')
+                                ], order='date asc')"/>
+                                
+                                <t t-foreach="lines" t-as="line">
+                                    <tr>
+                                        <td><span t-field="line.date"/></td>
+                                        <td><span t-field="line.move_id.name"/></td>
+                                        <td class="text-end">
+                                            <span t-esc="line.debit - line.credit" 
+                                                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

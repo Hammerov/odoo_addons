@@ -11,8 +11,8 @@
 
     <template id="report_details">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="o">
-                <t t-set="doc" t-value="o"/>
+            <t t-foreach="partner_statements" t-as="statement">
+                <t t-set="o" t-value="statement['partner']"/>
                 <t t-call="web.external_layout">
                     <div class="page">
                         <div class="row">
@@ -25,8 +25,8 @@
                                 </p>
                             </div>
                             <div class="col-6 text-end">
-                                <h4>Total Amount Due</h4>
-                                <h2 t-field="o.total_due" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                <h4>Statement Balance</h4>
+                                <h2 t-esc="statement['ending_balance']" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                             </div>
                         </div>
 
@@ -36,25 +36,37 @@
                                     <th>Date</th>
                                     <th>Reference</th>
                                     <th class="text-end">Amount</th>
+                                    <th class="text-end">Running Balance</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-set="lines" t-value="request.env['account.move.line'].search([
-                                    ('partner_id', '=', o.id),
-                                    ('account_id.account_type', '=', 'asset_receivable'),
-                                    ('parent_state', '=', 'posted')
-                                ], order='date asc')"/>
-                                
-                                <t t-foreach="lines" t-as="line">
+                                <tr>
+                                    <td colspan="3"><strong>Opening Balance</strong></td>
+                                    <td class="text-end">
+                                        <strong t-esc="statement['opening_balance']" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                    </td>
+                                </tr>
+
+                                <t t-foreach="statement['lines']" t-as="row">
                                     <tr>
-                                        <td><span t-field="line.date"/></td>
-                                        <td><span t-field="line.move_id.name"/></td>
+                                        <td><span t-field="row['line'].date"/></td>
+                                        <td><span t-field="row['line'].move_id.name"/></td>
                                         <td class="text-end">
-                                            <span t-esc="line.debit - line.credit" 
+                                            <span t-esc="row['amount']"
+                                                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-esc="row['running_balance']"
                                                   t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                         </td>
                                     </tr>
                                 </t>
+                                <tr>
+                                    <td colspan="3"><strong>Ending Balance</strong></td>
+                                    <td class="text-end">
+                                        <strong t-esc="statement['ending_balance']" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

@@ -1,1 +1,2 @@
-from . import models, reports
+from . import models
+from . import reports  # Added line

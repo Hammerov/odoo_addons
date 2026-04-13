@@ -12,14 +12,17 @@
     <template id="report_details">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
+                <t t-set="doc" t-value="o"/>
                 <t t-call="web.external_layout">
                     <div class="page">
                         <div class="row">
                             <div class="col-6">
                                 <h3><strong>Statement</strong></h3>
-                                <p><span t-field="o.name"/><br/>
-                                <span t-field="o.street"/><br/>
-                                <span t-field="o.city"/></p>
+                                <p>
+                                    <span t-field="o.name"/><br/>
+                                    <span t-field="o.street"/><br/>
+                                    <span t-field="o.city"/>
+                                </p>
                             </div>
                             <div class="col-6 text-end">
                                 <h4>Total Amount Due</h4>

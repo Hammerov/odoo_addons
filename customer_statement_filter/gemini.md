@@ -1,4 +1,6 @@
-Here is the updated and expanded gemini.md. customer_statement_filter Module
+Here is the updated and expanded gemini.md. This version serves as the "Master Specification" for your custom Odoo 19 module. It bridges the gap between your previous Studio files and a professional code-based implementation.
+
+Project Master Plan: customer_statement_filter Module
 1. Project Goal
 Create a standalone Odoo 19 module that provides a "Wizard" interface for generating customer statements, replicating the QuickBooks desktop filter experience. This replaces the existing Studio model x_statement_wizard.
 
@@ -62,17 +64,3 @@ User selects Dates/Customers -> Input stored in Transient Model.
 User clicks "Print PDF" -> Server Action processes logic.
 
 Odoo generates Report -> PDF downloads automatically.
-Gemini Project Update: Customer Statement Filter
-1. Project Status
-Core Goal: Create a QuickBooks-style Customer Statement wizard with running balances.
-
-Working: Wizard UI, Menu item, Module installation, PDF Generation (Triggering).
-
-Broken: The PDF output is currently blank (White page/No data).
-
-2. Current Technical Blockers
-Data Linkage: The AbstractModel in reports/partner_statement_report.py does not seem to be injecting the docs list into the QWeb context.
-
-Naming Sync: We need to verify that report_name in XML matches _name in Python exactly.
-
-Variable Scope: The XML is using doc['lines'], which requires the Python _get_report_values to return a list of dictionaries.

@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Document template - called once per partner -->
+    <template id="customer_statement_document">
+        <t t-call="web.external_layout">
+            <t t-set="company" t-value="env.company"/>
+            <t t-set="o" t-value="partner['partner_record']"/>
+            <t t-set="address">
+                <address
+                    t-out="partner['partner_record']"
+                    t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'
+                />
+            </t>
+            <div class="page">
+                <div id="oe_structure" class="oe_structure"/>
+                <h2 style="text-align:center;">
+                    <t t-if="statement_type == 'activity'">Activity Statement</t>
+                    <t t-elif="statement_type == 'detailed_activity'">Detailed Activity Statement</t>
+                    <t t-else="">Outstanding Statement</t>
+                </h2>
+                <div class="row mt16 mb16">
+                    <div class="col-6">
+                        <strong>As of: </strong>
+                        <span t-out="as_of_date"/>
+                    </div>
+                    <t t-if="start_date">
+                        <div class="col-6">
+                            <strong>Period: </strong>
+                            <span t-out="start_date"/>
+                            <t t-if="end_date"> — <span t-out="end_date"/></t>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Activity -->
+                <t t-if="statement_type == 'activity'">
+                    <table class="table table-sm table-bordered" style="width:100%;table-layout:fixed;margin-top:16px;">
+                        <colgroup>
+                            <col style="width:16%;"/>
+                            <col style="width:36%;"/>
+                            <col style="width:16%;"/>
+                            <col style="width:16%;"/>
+                            <col style="width:16%;"/>
+                        </colgroup>
+                        <thead style="background-color:#f5f5f5;">
+                            <tr>
+                                <th style="text-align:center;">Date</th>
+                                <th style="text-align:center;">Reference</th>
+                                <th style="text-align:right;">Amount</th>
+                                <th style="text-align:right;">Amount Paid</th>
+                                <th style="text-align:right;">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="font-weight:bold;background-color:#f5f5f5;">
+                                <td colspan="4" style="text-align:right;">Opening Balance</td>
+                                <td style="text-align:right;"><span t-out="currency"/> <span t-out="partner['opening_balance']"/></td>
+                            </tr>
+                            <t t-foreach="partner['lines']" t-as="line">
+                                <tr>
+                                    <td style="text-align:center;"><span t-out="line['date']"/></td>
+                                    <td style="text-align:center;"><span t-out="line['reference']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['original_amount']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['applied_amount']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['balance']"/></td>
+                                </tr>
+                                <t t-foreach="line['sub_lines']" t-as="sub">
+                                    <tr style="color:#555;font-size:0.92em;font-style:italic;">
+                                        <td style="text-align:center;padding-left:20px;"><span t-out="sub['date']"/></td>
+                                        <td style="text-align:center;padding-left:20px;"><span t-out="sub['reference']"/></td>
+                                        <td/>
+                                        <td style="text-align:right;"><span t-out="currency"/> <span t-out="sub['applied_amount']"/></td>
+                                        <td/>
+                                    </tr>
+                                </t>
+                            </t>
+                            <tr style="font-weight:bold;background-color:#f5f5f5;">
+                                <td colspan="4" style="text-align:right;">Closing Balance</td>
+                                <td style="text-align:right;"><span t-out="currency"/> <span t-out="partner['closing_balance']"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <t t-set="buckets" t-value="partner.get('aging_buckets')"/>
+                    <t t-if="buckets and buckets.get('_has_balance')">
+                        <h5 style="margin-top:24px;">Aging Report</h5>
+                        <table class="table table-sm table-bordered" style="width:100%;table-layout:fixed;margin-top:8px;">
+                            <colgroup>
+                                <col style="width:14%;"/><col style="width:14%;"/><col style="width:14%;"/>
+                                <col style="width:14%;"/><col style="width:14%;"/><col style="width:14%;"/>
+                                <col style="width:16%;"/>
+                            </colgroup>
+                            <thead style="background-color:#f5f5f5;">
+                                <tr>
+                                    <th style="text-align:center;">Current</th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">1 Month</t><t t-else="">1 - 30 Days</t></th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">2 Months</t><t t-else="">31 - 60 Days</t></th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">3 Months</t><t t-else="">61 - 90 Days</t></th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">4 Months</t><t t-else="">91 - 120 Days</t></th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">Older</t><t t-else="">121 Days +</t></th>
+                                    <th style="text-align:center;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('current', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_1_30', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_30_60', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_60_90', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_90_120', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_over_120', '0.00')"/></td>
+                                    <td style="text-align:right;"><strong><span t-out="currency"/> <span t-out="buckets.get('total', '0.00')"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+                </t>
+
+                <!-- Detailed Activity -->
+                <t t-if="statement_type == 'detailed_activity'">
+
+                    <!-- Prior Balance -->
+                    <h5 style="margin-top:16px;">Prior Balance</h5>
+                    <table class="table table-sm table-bordered" style="width:100%;table-layout:fixed;margin-top:8px;">
+                        <colgroup>
+                            <col style="width:16%;"/>
+                            <col style="width:36%;"/>
+                            <col style="width:16%;"/>
+                            <col style="width:16%;"/>
+                            <col style="width:16%;"/>
+                        </colgroup>
+                        <thead style="background-color:#f5f5f5;">
+                            <tr>
+                                <th style="text-align:center;">Date</th>
+                                <th style="text-align:center;">Reference</th>
+                                <th style="text-align:right;">Original Amount</th>
+                                <th style="text-align:right;">Open Amount</th>
+                                <th style="text-align:right;">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="partner['prior_lines']" t-as="line">
+                                <tr>
+                                    <td style="text-align:center;"><span t-out="line['date']"/></td>
+                                    <td style="text-align:center;"><span t-out="line['reference']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['original_amount']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['open_amount']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['balance']"/></td>
+                                </tr>
+                            </t>
+                            <tr style="font-weight:bold;background-color:#f5f5f5;">
+                                <td colspan="4" style="text-align:right;">Prior Balance Total</td>
+                                <td style="text-align:right;"><span t-out="currency"/> <span t-out="partner['prior_balance']"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Activity -->
+                    <h5 style="margin-top:16px;">Activity</h5>
+                    <table class="table table-sm table-bordered" style="width:100%;table-layout:fixed;margin-top:8px;">
+                        <colgroup>
+                            <col style="width:16%;"/>
+                            <col style="width:36%;"/>
+                            <col style="width:16%;"/>
+                            <col style="width:16%;"/>
+                            <col style="width:16%;"/>
+                        </colgroup>
+                        <thead style="background-color:#f5f5f5;">
+                            <tr>
+                                <th style="text-align:center;">Date</th>
+                                <th style="text-align:center;">Reference</th>
+                                <th style="text-align:right;">Amount</th>
+                                <th style="text-align:right;">Amount Paid</th>
+                                <th style="text-align:right;">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="partner['lines']" t-as="line">
+                                <tr>
+                                    <td style="text-align:center;"><span t-out="line['date']"/></td>
+                                    <td style="text-align:center;"><span t-out="line['reference']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['original_amount']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['applied_amount']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['balance']"/></td>
+                                </tr>
+                                <t t-foreach="line['sub_lines']" t-as="sub">
+                                    <tr style="color:#555;font-size:0.92em;font-style:italic;">
+                                        <td style="text-align:center;padding-left:20px;"><span t-out="sub['date']"/></td>
+                                        <td style="text-align:center;padding-left:20px;"><span t-out="sub['reference']"/></td>
+                                        <td/>
+                                        <td style="text-align:right;"><span t-out="currency"/> <span t-out="sub['applied_amount']"/></td>
+                                        <td/>
+                                    </tr>
+                                </t>
+                            </t>
+                            <tr style="font-weight:bold;background-color:#f5f5f5;">
+                                <td colspan="4" style="text-align:right;">Closing Balance</td>
+                                <td style="text-align:right;"><span t-out="currency"/> <span t-out="partner['closing_balance']"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Ending Balance -->
+                    <h5 style="margin-top:16px;">Ending Balance</h5>
+                    <table class="table table-sm table-bordered" style="width:100%;table-layout:fixed;margin-top:8px;">
+                        <colgroup>
+                            <col style="width:16%;"/>
+                            <col style="width:36%;"/>
+                            <col style="width:16%;"/>
+                            <col style="width:16%;"/>
+                            <col style="width:16%;"/>
+                        </colgroup>
+                        <thead style="background-color:#f5f5f5;">
+                            <tr>
+                                <th style="text-align:center;">Date</th>
+                                <th style="text-align:center;">Reference</th>
+                                <th style="text-align:right;">Original Amount</th>
+                                <th style="text-align:right;">Open Amount</th>
+                                <th style="text-align:right;">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="partner['ending_lines']" t-as="line">
+                                <tr>
+                                    <td style="text-align:center;"><span t-out="line['date']"/></td>
+                                    <td style="text-align:center;"><span t-out="line['reference']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['original_amount']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['open_amount']"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="line['balance']"/></td>
+                                </tr>
+                            </t>
+                            <tr style="font-weight:bold;background-color:#f5f5f5;">
+                                <td colspan="4" style="text-align:right;">Ending Balance Total</td>
+                                <td style="text-align:right;"><span t-out="currency"/> <span t-out="partner['ending_balance']"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Aging -->
+                    <t t-set="buckets" t-value="partner.get('aging_buckets')"/>
+                    <t t-if="buckets and buckets.get('_has_balance')">
+                        <h5 style="margin-top:24px;">Aging Report</h5>
+                        <table class="table table-sm table-bordered" style="width:100%;table-layout:fixed;margin-top:8px;">
+                            <colgroup>
+                                <col style="width:14%;"/><col style="width:14%;"/><col style="width:14%;"/>
+                                <col style="width:14%;"/><col style="width:14%;"/><col style="width:14%;"/>
+                                <col style="width:16%;"/>
+                            </colgroup>
+                            <thead style="background-color:#f5f5f5;">
+                                <tr>
+                                    <th style="text-align:center;">Current</th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">1 Month</t><t t-else="">1 - 30 Days</t></th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">2 Months</t><t t-else="">31 - 60 Days</t></th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">3 Months</t><t t-else="">61 - 90 Days</t></th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">4 Months</t><t t-else="">91 - 120 Days</t></th>
+                                    <th style="text-align:center;"><t t-if="aging_type == 'months'">Older</t><t t-else="">121 Days +</t></th>
+                                    <th style="text-align:center;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('current', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_1_30', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_30_60', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_60_90', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_90_120', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_over_120', '0.00')"/></td>
+                                    <td style="text-align:right;"><strong><span t-out="currency"/> <span t-out="buckets.get('total', '0.00')"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+                </t>
+
+                <!-- Outstanding -->
+                <t t-if="statement_type == 'outstanding'">
+                    <table class="table table-sm table-bordered" style="width:100%;table-layout:fixed;margin-top:16px;">
+                        <colgroup>
+                            <col style="width:20%;"/>
+                            <col style="width:25%;"/>
+                            <col style="width:18%;"/>
+                            <col style="width:18%;"/>
+                            <col style="width:19%;"/>
+                        </colgroup>
+                        <thead style="background-color:#f5f5f5;">
+                            <tr>
+                                <th style="text-align:center;vertical-align:middle;">Invoice Date</th>
+                                <th style="text-align:center;vertical-align:middle;">Invoice</th>
+                                <th style="text-align:right;vertical-align:middle;">Invoice Amount</th>
+                                <th style="text-align:right;vertical-align:middle;">Payment Amount</th>
+                                <th style="text-align:right;vertical-align:middle;">Balance Due</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="partner['invoices']" t-as="invoice">
+                                <tr>
+                                    <td style="text-align:center;vertical-align:middle;"><span t-out="invoice['invoice_date']"/></td>
+                                    <td style="text-align:center;vertical-align:middle;"><span t-out="invoice['invoice_id']"/></td>
+                                    <td style="text-align:right;vertical-align:middle;">
+                                        <span t-out="currency"/> <span t-out="invoice['amount']"/>
+                                    </td>
+                                    <td style="text-align:right;vertical-align:middle;">
+                                        <span t-out="currency"/> <span t-out="invoice['payment_amount']"/>
+                                    </td>
+                                    <td style="text-align:right;vertical-align:middle;">
+                                        <span t-out="currency"/> <span t-out="invoice['balance_due']"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr style="font-weight:bold;background-color:#f5f5f5;">
+                                <td colspan="2" style="text-align:right;vertical-align:middle;">Total</td>
+                                <td style="text-align:right;vertical-align:middle;">
+                                    <span t-out="currency"/> <span t-out="partner['total_amount']"/>
+                                </td>
+                                <td style="text-align:right;vertical-align:middle;">
+                                    <span t-out="currency"/> <span t-out="partner['total_payment']"/>
+                                </td>
+                                <td style="text-align:right;vertical-align:middle;">
+                                    <span t-out="currency"/> <span t-out="partner['total_balance']"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Aging Table -->
+                    <t t-set="buckets" t-value="partner['aging_buckets']"/>
+                    <t t-if="buckets and buckets.get('_has_balance')">
+                        <h5 style="margin-top:24px;">Aging Report</h5>
+                        <table class="table table-sm table-bordered" style="width:100%;table-layout:fixed;margin-top:8px;">
+                            <colgroup>
+                                <col style="width:14%;"/>
+                                <col style="width:14%;"/>
+                                <col style="width:14%;"/>
+                                <col style="width:14%;"/>
+                                <col style="width:14%;"/>
+                                <col style="width:14%;"/>
+                                <col style="width:16%;"/>
+                            </colgroup>
+                            <thead style="background-color:#f5f5f5;">
+                                <tr>
+                                    <th style="text-align:center;">Current</th>
+                                    <th style="text-align:center;">
+                                        <t t-if="aging_type == 'months'">1 Month</t>
+                                        <t t-else="">1 - 30 Days</t>
+                                    </th>
+                                    <th style="text-align:center;">
+                                        <t t-if="aging_type == 'months'">2 Months</t>
+                                        <t t-else="">31 - 60 Days</t>
+                                    </th>
+                                    <th style="text-align:center;">
+                                        <t t-if="aging_type == 'months'">3 Months</t>
+                                        <t t-else="">61 - 90 Days</t>
+                                    </th>
+                                    <th style="text-align:center;">
+                                        <t t-if="aging_type == 'months'">4 Months</t>
+                                        <t t-else="">91 - 120 Days</t>
+                                    </th>
+                                    <th style="text-align:center;">
+                                        <t t-if="aging_type == 'months'">Older</t>
+                                        <t t-else="">121 Days +</t>
+                                    </th>
+                                    <th style="text-align:center;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('current', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_1_30', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_30_60', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_60_90', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_90_120', '0.00')"/></td>
+                                    <td style="text-align:right;"><span t-out="currency"/> <span t-out="buckets.get('b_over_120', '0.00')"/></td>
+                                    <td style="text-align:right;"><strong><span t-out="currency"/> <span t-out="buckets.get('total', '0.00')"/></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+    <!-- Main template -->
+    <template id="customer_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="partner">
+                <t t-call="partner_statement_report.customer_statement_document"/>
+            </t>
+        </t>
+    </template>
+    <!-- Report Action -->
+    <record id="customer_report_template_action" model="ir.actions.report">
+        <field name="name">Customer Statement Report</field>
+        <field name="model">customer.statement.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">partner_statement_report.customer_report_template</field>
+        <field name="report_file">partner_statement_report.customer_report_template</field>
+        <field name="binding_model_id" ref="model_customer_statement_wizard"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

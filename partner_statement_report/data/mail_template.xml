@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="1">
+        <record id="email_template_partner_statement" model="mail.template">
+            <field name="name">Partner Statement</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="subject">Account Statement as of {{ object.env['customer.statement.wizard'].search([], limit=1).as_of_date or '' }}</field>
+            <field name="email_to">{{ object.email }}</field>
+            <field name="email_from">{{ (user.company_id.email or user.email) }}</field>
+            <field name="body_html" type="html">
+                <p style="margin:0 0 16px 0;">
+                    Dear <t t-out="object.name"/>,
+                </p>
+                <p style="margin:0 0 16px 0;">
+                    Please find attached your account statement.
+                </p>
+                <p style="margin:0 0 16px 0;">
+                    Should you have any queries regarding this statement, please do not hesitate to contact us.
+                </p>
+                <p style="margin:0 0 16px 0;">
+                    Regards,<br/>
+                    <t t-out="user.company_id.name"/>
+                </p>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>

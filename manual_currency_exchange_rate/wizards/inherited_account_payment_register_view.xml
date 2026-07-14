@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="inherited_account_payment_register_view" model="ir.ui.view">
+            <field name="name">inherited.account.payment.register.view</field>
+            <field name="model">account.payment.register</field>
+            <field name="inherit_id" ref="account.view_account_payment_register_form" />
+            <field name="arch" type="xml">
+                <field name="currency_id" position="after">
+                    <field name="active_manual_currency_rate" invisible="1"/>
+                    <field name="apply_manual_currency_exchange" invisible="active_manual_currency_rate == False" />
+                    <field name="main_currency_exchange_rate" invisible="apply_manual_currency_exchange == False or active_manual_currency_rate == False" required="apply_manual_currency_exchange == True" />
+                    <field name="manual_currency_exchange_rate" invisible="True" digits="[12,12]" required="apply_manual_currency_exchange == True" />
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

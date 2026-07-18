@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Add the Customer / Vendor checkboxes on the Contact form -->
+    <record id="view_partner_form_customer_vendor_type" model="ir.ui.view">
+        <field name="name">res.partner.form.customer.vendor.type</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="before">
+                <group name="customer_vendor_type" col="4" class="mt16 mb16">
+                    <field name="is_customer" widget="boolean_toggle"/>
+                    <field name="is_vendor" widget="boolean_toggle"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Quick filters + group-by on the Contacts search view -->
+    <record id="view_res_partner_filter_customer_vendor_type" model="ir.ui.view">
+        <field name="name">res.partner.search.customer.vendor.type</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter name="filter_is_customer" string="Customers"
+                        domain="[('is_customer', '=', True)]"/>
+                <filter name="filter_is_vendor" string="Vendors"
+                        domain="[('is_vendor', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
